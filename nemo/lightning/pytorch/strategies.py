@@ -45,6 +45,17 @@ ConfigT = TypeVar("ConfigT")
 
 DDPLiteral = Literal["megatron", "pytorch"]
 
+import time
+def timer_func(func): 
+    def wrap_func(*args, **kwargs): 
+        t1 = time.time() 
+        print(f"Execution start of {func} at time {t1}")
+        result = func(*args, **kwargs) 
+        t2 = time.time() 
+        print(f"Execution end of {func} at time {t2}")
+        print(f'Function {func.__name__!r} executed in {(t2-t1):.4f}s') 
+        return result 
+    return wrap_func
 
 @dataclass
 class ParallelismConfig:
@@ -616,6 +627,7 @@ class MegatronStrategy(DDPStrategy, io.IOMixin):
         self.checkpoint_io.save_checkpoint(checkpoint, filepath, storage_options=storage_options)
 
     @override
+    @timer_func
     def load_checkpoint(self, checkpoint_path: Union[str, Path]) -> Dict[str, Any]:
         """PTL method which we override to integrate distributed checkpoints for model parallel models.
         In order to load distributed checkpoints we need to provide the sharded_state_dict to
